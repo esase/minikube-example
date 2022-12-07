@@ -1,0 +1,44 @@
+alertmanager:
+  config:
+    global:
+      resolve_timeout: 5m
+      slack_api_url: 'https://hooks.slack.com/services/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' 
+    route:
+      group_by: ['alertname', 'cluster', 'service']
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 1h
+      receiver: 'default-receiver'
+      routes:
+      - match:
+          alertname: DeadMansSwitch
+        receiver: 'null'
+    inhibit_rules:
+    - source_match:
+        severity: 'critical'
+      target_match:
+        severity: 'warning'
+      equal: ['alertname', 'cluster', 'service']
+    receivers:
+    - name: 'default-receiver'
+      slack_configs:
+      - channel: '#kube' 
+        username: 'Grafana-Kube'
+        color: '{{ if eq .Status "firing" }}danger{{ else }}good{{ end }}'
+        title: '[{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] Prometheus Event Notification'
+        title_link: '{{ template "slack.default.titlelink" . }}'
+        pretext: '{{ .CommonAnnotations.summary }}'
+        text: |-
+          {{ range .Alerts }}
+            {{- if .Annotations.summary }}*Alert:* {{ .Annotations.summary }} - `{{ .Labels.severity }}`{{- end }}
+            *Description:* {{ .Annotations.description }}{{ .Annotations.message }}
+            *Graph:* <{{ .GeneratorURL }}|:chart_with_upwards_trend:>{{ if or .Annotations.runbook .Annotations.runbook_url }} *Runbook:* <{{ .Annotations.runbook }}{{ .Annotations.runbook_url }}|:spiral_note_pad:>{{ end }}
+            *Details:*
+            {{ range .Labels.SortedPairs }} • *{{ .Name }}:* `{{ .Value }}`
+            {{ end }}
+          {{ end }}
+        fallback: '{{ template "slack.default.fallback" . }}'
+        icon_emoji: '{{ template "slack.default.iconemoji" . }}'
+        icon_url: '{{ template "slack.default.iconurl" . }}'
+        send_resolved: true
+    - name: 'null'
