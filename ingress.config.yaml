@@ -14,6 +14,7 @@ apiVersion: v1
 metadata:
   name: foo-service
 spec:
+  type: ClusterIP
   selector:
     app: foo
   ports:
@@ -36,6 +37,7 @@ apiVersion: v1
 metadata:
   name: bar-service
 spec:
+  type: ClusterIP
   selector:
     app: bar
   ports:
@@ -45,23 +47,35 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: example-ingress
+  name: ingress-foo-service
 spec:
   rules:
-  - http:
+  - host: foo.esase.com
+    http:
       paths:
-      - pathType: Prefix
-        path: "/foo"
+      - path: /
+        pathType: Prefix
         backend:
           service:
             name: foo-service
             port:
               number: 8080
-      - pathType: Prefix
-        path: "/bar"
+  ingressClassName: nginx
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-bar-service
+spec:
+  rules:
+  - host: bar.esase.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
         backend:
           service:
             name: bar-service
             port:
               number: 8080
----
+  ingressClassName: nginx
