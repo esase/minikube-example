@@ -1,81 +1,111 @@
-kind: Pod
 apiVersion: v1
+kind: Namespace
 metadata:
-  name: foo-app
-  labels:
-    app: foo
-spec:
-  containers:
-  - name: foo-app
-    image: kicbase/echo-server:1.0
+  name: foo-api
 ---
+apiVersion: v1
 kind: Service
-apiVersion: v1
 metadata:
-  name: foo-service
-spec:
-  type: ClusterIP
-  selector:
-    app: foo
-  ports:
-  # Default port used by the image
-  - port: 8080
----
-kind: Pod
-apiVersion: v1
-metadata:
-  name: bar-app
+  name: foo-api
+  namespace: foo-api
   labels:
-    app: bar
+    app: foo-api
 spec:
-  containers:
-  - name: bar-app
-    image: kicbase/echo-server:1.0
----
-kind: Service
-apiVersion: v1
-metadata:
-  name: bar-service
-spec:
-  type: ClusterIP
-  selector:
-    app: bar
   ports:
-  # Default port used by the image
   - port: 8080
+    targetPort: 8080
+  selector:
+    app: foo-api
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: foo-api
+  namespace: foo-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: foo-api
+  template:
+    metadata:
+      namespace: foo-api
+      labels:
+        app: foo-api
+    spec:
+      containers:
+      - name: foo-app
+        image: kicbase/echo-server:1.0
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: ingress-foo-service
+  name: ingress
+  namespace: foo-api
 spec:
   rules:
-  - host: foo.esase.com
-    http:
+  - http:
       paths:
-      - path: /
-        pathType: Prefix
+      - pathType: Prefix
+        path: "/foo"
         backend:
           service:
-            name: foo-service
+            name: foo-api
             port:
               number: 8080
-  ingressClassName: nginx
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: bar-api
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bar-api
+  namespace: bar-api
+  labels:
+    app: bar-api
+spec:
+  ports:
+  - port: 8080
+    targetPort: 8080
+  selector:
+    app: bar-api
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bar-api
+  namespace: bar-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bar-api
+  template:
+    metadata:
+      name: bar-api
+      labels:
+        app: bar-api
+    spec:
+      containers:
+      - name: bar-app
+        image: kicbase/echo-server:1.0
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: ingress-bar-service
+  name: ingress
+  namespace: bar-api
 spec:
   rules:
-  - host: bar.esase.com
-    http:
+  - http:
       paths:
-      - path: /
-        pathType: Prefix
+      - pathType: Prefix
+        path: "/bar"
         backend:
           service:
-            name: bar-service
+            name: bar-api
             port:
               number: 8080
-  ingressClassName: nginx

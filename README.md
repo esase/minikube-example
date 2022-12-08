@@ -29,9 +29,15 @@ ADVANCED:
 4. Get ingress public IP: `kubectl get ingress`
 5. Get pods IP addresses: `kubectl get pod -o wide`
 6. Get linked services with pods: `kubectl get endpoints`
-7. Get a list of running services: `kubectl get svc`
+7. Get a list of running services: `kubectl get svc --all-namespaces`
 8. Get list of system running pods: ` kubectl get pod -n kube-system`
-9. Get a list of running services and pods: `kubectl get all`
+9. Get a list of running services, pods and deployments: `kubectl get all --all-namespaces`
+10. Scale a deployment adding extra PODS `kubectl scale deploy myc2-wallet-api  --replicas=2`
+11. Describe the service and it pods `kubectl describe service foo-api`
+12. Get advanced POD information  `kubectl get pods -o wide`
+13. Delete resources (deployments, pods, services) `kubectl delete -f FILE_NAME`
+14. Get all pods in all namespaces `kubectl get pods --all-namespaces `
+15. Get all pods in a concrete namespace `kubectl get pods --namespace bar-api`
 
 LINKS
 -----
@@ -39,12 +45,14 @@ LINKS
 1. https://medium.com/@javatechie/kubernetes-tutorial-install-run-minikube-in-mac-os-k8s-cluster-369b25b0c3f0
 2. https://minikube.sigs.k8s.io/docs/start/
 3. https://stackoverflow.com/questions/58561682/minikube-with-ingress-example-not-working
-
+4. https://github.com/vplauzon/aks/blob/master/ingress-multiple-ns/ingress2.yaml
 
 NOTES:
 
+0. `Minicube` is a tool for running a kubernetes cluster one a one machine for development purposes which use a virtual box for running pods.
+
 1. All communication between `PODS` which are like abstract containers, with dynamic IP addresses, which could be deleted and restored many many times
-on Nodes (which are physical computers) performed by using services. Which act like a glue between PODS, services know where PODS are located and how
+on Nodes (which are physical or virtual machines) performed by using services. Which act like a glue between PODS, services know where PODS are located and how
 to reach them (using a round robin algorithm, which simply selects a random POD if you are running several PODS)
 
 2. There are several types of services: 
@@ -116,3 +124,33 @@ to reach them (using a round robin algorithm, which simply selects a random POD 
     ```
 
     PS: On the prod usually people use either `Ingress` or the `LoadBalancer` for accessing the cluster.
+
+3. Deployments manage `POD` (like how many pod should be run) etc. So it's better way for starting POD because you have more
+power managing them, in comparison when we describe just POD like: 
+
+```
+kind: Pod
+apiVersion: v1
+metadata:
+  name: foo-app
+  labels:
+    app: foo
+spec:
+  containers:
+  - name: foo-app
+    image: kicbase/echo-server:1.0
+```
+
+Using this way we cannot set a replica count for instance.
+
+
+4. `Kubelet` a worker node, it's like a service which manages pods and interact between container and node.
+
+5. `Master` node, manages all the running Nodes, and decide where and how many pods should be run in a concrete `Node`, The master node
+has an API which you can communicate with using CLI commands. The decision where to tun a POD depends how overload Nodes in a cluster. And the master
+nodes selects less overloaded one. Also the master node watch for run POD's statuses, and restart them in case of a failure. In a high load
+projects we could use several `master` nodes which are managed by a load balancer.
+
+6. Using namespaces we can logically group resources by their responsibility to avoid accidental rewriting some of them, for instance two
+teams may introduce a new deployment with the same name and overwrite  some of existing ones. And also we can limit some resources (CPU, RAM, Storage)
+per namespace. 
