@@ -24,6 +24,9 @@ RUNNING
 ADVANCED:
 --------
 
+
+kubectl delete bar-api
+
 2. Addons list: `minikube addons list`
 3. Apply a new config to the kuber cluster: `kubectl apply -f ingress.config.yaml`
 4. Get ingress public IP: `kubectl get ingress`
@@ -38,6 +41,10 @@ ADVANCED:
 13. Delete resources (deployments, pods, services) `kubectl delete -f FILE_NAME`
 14. Get all pods in all namespaces `kubectl get pods --all-namespaces `
 15. Get all pods in a concrete namespace `kubectl get pods --namespace bar-api`
+16. Get list of all nodes `kubectl get nodes` 
+17. Get a list of a replica set `kubectl get replicaset --all-namespaces`
+18. Delete all components and ingress rules by a namespace `kubectl delete all,ingress --all --namespace=bar-api`
+19. Get all ingress http rules `kubectl get ing --all-namespaces -o json | jq -r '.items[].spec.rules[].http.paths[]'`
 
 LINKS
 -----
@@ -141,7 +148,8 @@ spec:
     image: kicbase/echo-server:1.0
 ```
 
-Using this way we cannot set a replica count for instance.
+Using this way we cannot set a replica count for instance. In addition if you want delete a deployment with all associated POD then 
+you can do it easily.
 
 
 4. `Kubelet` a worker node, it's like a service which manages pods and interact between container and node.
@@ -154,3 +162,11 @@ projects we could use several `master` nodes which are managed by a load balance
 6. Using namespaces we can logically group resources by their responsibility to avoid accidental rewriting some of them, for instance two
 teams may introduce a new deployment with the same name and overwrite  some of existing ones. And also we can limit some resources (CPU, RAM, Storage)
 per namespace. 
+
+7. `Helm` it's a package manager for kuber, like yarn, composer, etc. The main idea here that people build their own yaml configuration with appropriate properties and docker images and publish them as packages. Like for example we could search for a package `helm search repo mongoDb`
+What else can the `Helm` do:
+    a. Release management - you can install any package into the cluster or even rollback it in case of a failure. (Helm keeps all the changes history)
+    but it's deleted from the helm version 3.
+    b. it also can generate a current cluster configuration which could be lately used in a different cluster, like you could copy the `prod` env into the `dev` one.
+
+8. A `POD` it's like an abstraction layer (isolated virtual host) the smallest unit in the cluster which has it's own IP address and a running a docker container inside it
