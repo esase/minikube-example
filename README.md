@@ -36,21 +36,25 @@ kubectl delete bar-api
 8. Get list of system running pods: ` kubectl get pod -n kube-system`
 9. Get a list of running services, pods and deployments: `kubectl get all --all-namespaces`
 10. Scale a deployment adding extra PODS `kubectl scale deploy myc2-wallet-api  --replicas=2`
-11. Describe the service and it pods `kubectl describe service foo-api`
+11. Describe the service and it pods `kubectl describe service news-api`
 12. Get advanced POD information  `kubectl get pods -o wide`
 13. Delete resources (deployments, pods, services) `kubectl delete -f FILE_NAME`
 14. Get all pods in all namespaces `kubectl get pods --all-namespaces `
 15. Get all pods in a concrete namespace `kubectl get pods --namespace bar-api`
 16. Get list of all nodes `kubectl get nodes` 
 17. Get a list of a replica set `kubectl get replicaset --all-namespaces`
-18. Delete all components and ingress rules by a namespace `kubectl delete all,ingress --all --namespace=bar-api`
+18. Delete all components and ingress rules by a namespace `kubectl delete all,ingress --all --namespace=news-api`
 19. Get all ingress http rules `kubectl get ing --all-namespaces -o json | jq -r '.items[].spec.rules[].http.paths[]'`
 20. Enter a container `kubectl exec -it --namespace=foo-api foo-api-7555dcdb9c-lpfts foo-app -- /bin/bash`
-21. Describe a pod `kubectl get pods foo-api-7555dcdb9c-lpfts -o jsonpath='{.spec.containers[*].name}' --namespace=foo-api`
+21. Get a running container in a pod `kubectl get pods news-api-54bc64b954-28zdq -o jsonpath='{.spec.containers[*].name}' --namespace=news-api`
 22. Show a secret with decoding`kubectl get secret docker-registry -o jsonpath="{.data.dockerconfigjson}" | base64 --decode`
 22. Show all secrets `kubectl get secrets`
 23. Describe the secret `kubectl describe secret mysecret`
 23. Get a secret `kubectl get secret docker-registry -o json`
+24. Get logs `kubectl logs news-api-54bc64b954-28zdq  --namespace=news-api -c news-api --tail=20 --follow`
+25. Describe a pod `kubectl describe pods news-api-54bc64b954-z28vq --namespace=news-api`
+26. Check if the pulling from a repository working `minikube ssh docker pull docker.io/esase/news-api:1.0`
+27. Login into the docker `minikube ssh docker login`
 
 LINKS
 -----
@@ -60,6 +64,7 @@ LINKS
 3. https://stackoverflow.com/questions/58561682/minikube-with-ingress-example-not-working
 4. https://github.com/vplauzon/aks/blob/master/ingress-multiple-ns/ingress2.yaml
 5. https://gitlab.com/nanuchi/youtube-tutorial-series/-/blob/master/configmap-and-secret-volumes/mongodb-config-components.yaml
+6. https://www.datree.io/resources/kubernetes-troubleshooting-fixing-imagepullbackoff-state-error
 
 NOTES:
 
@@ -216,14 +221,21 @@ docker build -f ./infra/docker/Dockerfile -t esase/news-api:1.0 .
 docker push esase/news-api:1.0
 ```
 
+make sure you can pull images:
+
+```
+docker pull docker.io/esase/news-api:1.0
+minikube ssh docker pull docker.io/esase/news-api:1.0
+```
+
 14. Then we need to create a secret to be able to fetch images from the private repos
 
 ```
-
 kubectl create secret docker-registry docker-registry \
---docker-server=https://hub.docker.com/ \
---docker-username=user \
---docker-password=pass
+--docker-server=https://docker.io/ \
+--docker-username=USER \
+--docker-password=PASS
+
 ```
 
 and then we can use the secret name for auth:
@@ -241,3 +253,4 @@ spec:
       imagePullSecrets:
         - name: docker-registry <-----
 ```
+
