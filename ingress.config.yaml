@@ -17,6 +17,15 @@ spec:
   selector:
     app: foo-api
 ---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: foo-api
+  namespace: foo-api
+type: Opaque
+data:
+  mongoHost: bW9uZ29kYitzcnY6Ly9lc2FzZTpUZXJtaW5hdG9yMTZAdGVzdGNsdXN0ZXIueG94eGdubS5tb25nb2RiLm5ldC8/cmV0cnlXcml0ZXM9dHJ1ZSZ3PW1ham9yaXR5
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -36,6 +45,13 @@ spec:
       containers:
       - name: foo-app
         image: kicbase/echo-server:1.0
+        env:
+        - name: MONGO_HOST
+          valueFrom:
+              secretKeyRef:
+                name: foo-api
+                key: mongoHost
+
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress

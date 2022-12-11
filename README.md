@@ -45,6 +45,9 @@ kubectl delete bar-api
 17. Get a list of a replica set `kubectl get replicaset --all-namespaces`
 18. Delete all components and ingress rules by a namespace `kubectl delete all,ingress --all --namespace=bar-api`
 19. Get all ingress http rules `kubectl get ing --all-namespaces -o json | jq -r '.items[].spec.rules[].http.paths[]'`
+20. Enter a container `kubectl exec -it --namespace=foo-api foo-api-7555dcdb9c-lpfts foo-app -- /bin/bash`
+21. Describe a pod `kubectl get pods foo-api-7555dcdb9c-lpfts -o jsonpath='{.spec.containers[*].name}' --namespace=foo-api`
+
 
 LINKS
 -----
@@ -53,6 +56,7 @@ LINKS
 2. https://minikube.sigs.k8s.io/docs/start/
 3. https://stackoverflow.com/questions/58561682/minikube-with-ingress-example-not-working
 4. https://github.com/vplauzon/aks/blob/master/ingress-multiple-ns/ingress2.yaml
+5. https://gitlab.com/nanuchi/youtube-tutorial-series/-/blob/master/configmap-and-secret-volumes/mongodb-config-components.yaml
 
 NOTES:
 
@@ -149,7 +153,7 @@ spec:
 ```
 
 Using this way we cannot set a replica count for instance. In addition if you want delete a deployment with all associated POD then 
-you can do it easily.
+you can do it easily. Also using deployments we can inject config and secrets into containers.
 
 
 4. `Kubelet` a worker node, it's like a service which manages pods and interact between container and node.
@@ -170,3 +174,34 @@ What else can the `Helm` do:
     b. it also can generate a current cluster configuration which could be lately used in a different cluster, like you could copy the `prod` env into the `dev` one.
 
 8. A `POD` it's like an abstraction layer (isolated virtual host) the smallest unit in the cluster which has it's own IP address and a running a docker container inside it
+
+9. `Persistance` volume it's like a cluster resource and it's like an interface (or like an external plugin to your cluster) where you just describe how much space are you going to use etc.
+But the actual storage you should organize your self. We cannot use persistance storages in namespaces because they should be available globally.
+
+10. Persistance volume claim it's just an abstraction like a service where your claim some kind of a storage, and the Persistance volume claim tries
+to find an appropriate storage for you and you will be working with a matched one. Claims should be placed in the same namespace as a `POD`.
+
+11. `Storage class` it's kind of a factory which creates storages dynamically when you claim them. It's very convenient way in comparison with the manual
+mode.
+
+12. In kuber we can use both `configMap` and `Secret` as a key value storage, for configuring our app. We can even provide files inside the cluster
+using. Well the difference between config map and the secret, that the secret keeps data encrypted, they looks like:
+```
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mongodb-configmap
+data:
+  db_host: mongodb-service
+ 
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mongodb-secret
+type: Opaque
+data:
+  username: dXNlcm5hbWU=
+  password: cGFzc3dvcmQ=
+
+```
