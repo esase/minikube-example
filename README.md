@@ -47,7 +47,10 @@ kubectl delete bar-api
 19. Get all ingress http rules `kubectl get ing --all-namespaces -o json | jq -r '.items[].spec.rules[].http.paths[]'`
 20. Enter a container `kubectl exec -it --namespace=foo-api foo-api-7555dcdb9c-lpfts foo-app -- /bin/bash`
 21. Describe a pod `kubectl get pods foo-api-7555dcdb9c-lpfts -o jsonpath='{.spec.containers[*].name}' --namespace=foo-api`
-
+22. Show a secret with decoding`kubectl get secret docker-registry -o jsonpath="{.data.dockerconfigjson}" | base64 --decode`
+22. Show all secrets `kubectl get secrets`
+23. Describe the secret `kubectl describe secret mysecret`
+23. Get a secret `kubectl get secret docker-registry -o json`
 
 LINKS
 -----
@@ -204,4 +207,37 @@ data:
   username: dXNlcm5hbWU=
   password: cGFzc3dvcmQ=
 
+```
+
+13. To be able to use private repos in the kuber we should build images and push them into a registry
+
+```
+docker build -f ./infra/docker/Dockerfile -t esase/news-api:1.0 .
+docker push esase/news-api:1.0
+```
+
+14. Then we need to create a secret to be able to fetch images from the private repos
+
+```
+
+kubectl create secret docker-registry docker-registry \
+--docker-server=https://hub.docker.com/ \
+--docker-username=user \
+--docker-password=pass
+```
+
+and then we can use the secret name for auth:
+
+```
+spec:
+      serviceAccountName: internal-app
+      containers:
+        - name: $SERVICE_NAME
+          image: $IMAGE_NAME
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: SERVER_PORT
+              value: "$PORT"
+      imagePullSecrets:
+        - name: docker-registry <-----
 ```
