@@ -59,6 +59,7 @@ metadata:
   name: foo-api
   namespace: foo-api
 spec:
+  ingressClassName: nginx
   rules:
   - http:
       paths:
@@ -115,6 +116,7 @@ metadata:
   name: bar-api
   namespace: bar-api
 spec:
+  ingressClassName: nginx
   rules:
   - http:
       paths:

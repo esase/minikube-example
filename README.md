@@ -15,68 +15,71 @@ USAGE
 4. Deletes a local Kubernetes cluster. This command deletes the VM, and removes all associated files.`minikube delete`
 5. To run a web dashboard: `minikube dashboard`
 6. Returns a local ingress' ip: `minikube ip`
+7. Addons list: `minikube addons list`
+8. Check if the pulling from a repository working `minikube ssh docker pull docker.io/esase/news-api:1.0`
+9. Login into the docker `minikube ssh docker login`
 
 RUNNING
 -------
 
 1. to be able to forward traffic from local machine to the cluster - `minikube tunnel` (and your ingress resources would be available at "127.0.0.1")
 
-ADVANCED:
---------
+ADVANCED KUBER COMMANDS:
+-----------------
 
-2. Addons list: `minikube addons list`
-3. Apply a new config to the kuber cluster: `kubectl apply -f ingress.config.yaml`
-4. Get ingress public IP: `kubectl get ingress`
-5. Get pods IP addresses: `kubectl get pod -o wide`
-6. Get linked services with pods: `kubectl get endpoints`
-7. Get a list of running services: `kubectl get svc --all-namespaces`
-8. Get list of system running pods: ` kubectl get pod -n kube-system`
-9. Get a list of running services, pods and deployments: `kubectl get all --all-namespaces`
-10. Scale a deployment adding extra PODS `kubectl scale deploy myc2-wallet-api  --replicas=2`
-11. Describe the service and it pods `kubectl describe service news-api`
-12. Get advanced POD information  `kubectl get pods -o wide`
-13. Delete resources (deployments, pods, services) `kubectl delete -f FILE_NAME`
-14. Get all pods in all namespaces `kubectl get pods --all-namespaces `
-15. Get all pods in a concrete namespace `kubectl get pods --namespace bar-api`
-16. Get list of all nodes `kubectl get nodes` 
-17. Get a list of a replica set `kubectl get replicaset --all-namespaces`
-18. Delete all components and ingress rules by a namespace `kubectl delete all,ingress,secrets --all --namespace=news-api`
-19. Get all ingress http rules `kubectl get ing --all-namespaces -o json | jq -r '.items[].spec.rules[].http.paths[]'`
-20. Enter a container `kubectl exec -it --namespace=foo-api foo-api-7555dcdb9c-lpfts foo-app -- /bin/bash`
-21. Get a running container in a pod `kubectl get pods news-api-54bc64b954-28zdq -o jsonpath='{.spec.containers[*].name}' --namespace=news-api`
-22. Show a secret with decoding`kubectl get secret docker-registry -o jsonpath="{.data.dockerconfigjson}" | base64 --decode`
-22. Show all secrets `kubectl get secrets`
-23. Describe the secret `kubectl describe secret mysecret`
+1. Apply a new config to the kuber cluster: `kubectl apply -f ingress.config.yaml`
+2. Get ingress info `kubectl get all -n ingress-nginx`
+3. Get pods IP addresses: `kubectl get pod -o wide`
+4. Get linked services with pods: `kubectl get endpoints`
+5. Get a list of running services: `kubectl get svc -A`
+6. Get list of system running pods: ` kubectl get pod -n kube-system`
+7. Get a list of running services, pods and deployments: `kubectl get all -A`
+8. Scale a deployment adding extra PODS `kubectl scale deploy myc2-wallet-api  --replicas=2`
+9. Describe the service and it pods `kubectl describe service news-api`
+10. Get advanced POD information  `kubectl get pods -o wide`
+11. Delete resources (deployments, pods, services) `kubectl delete -f FILE_NAME`
+12. Get all pods in all namespaces `kubectl get pods -A `
+13. Get all pods in a concrete namespace `kubectl get pods -n bar-api`
+14. Get list of all nodes `kubectl get nodes` 
+15. Get a list of a replica set `kubectl get replicaset -A`
+16. Delete all components and ingress rules by a namespace `kubectl delete all,ingress,secrets --all -n=news-api`
+17. Get all ingress http rules `kubectl get ing -A -o json | jq -r '.items[].spec.rules[].http.paths[]'`
+18. Enter a container `kubectl exec -it -n=foo-api foo-api-7555dcdb9c-lpfts foo-app -- /bin/bash`
+19. Get a running container in a pod `kubectl get pods news-api-54bc64b954-28zdq -o jsonpath='{.spec.containers[*].name}' -n=news-api`
+20. Show a secret with decoding`kubectl get secret docker-registry -o jsonpath="{.data.dockerconfigjson}" | base64 --decode`
+21. Show all secrets `kubectl get secrets`
+22. Describe the secret `kubectl describe secret mysecret`
 23. Get a secret `kubectl get secret docker-registry -o json`
-24. Get logs `kubectl logs news-api-78c74cf964-bzsm8  --namespace=news-api -c news-api --tail=20 --follow`
-25. Describe a pod `kubectl describe pods news-api-78c74cf964-bzsm8 --namespace=news-api`
-26. Check if the pulling from a repository working `minikube ssh docker pull docker.io/esase/news-api:1.0`
-27. Login into the docker `minikube ssh docker login`
-28. Get current context `kubectl config current-context`
-29. Checkout context `kubectl config use-context  myc-staging-env`
-30. Get nodes `kubectl get nodes -o wide`
-31. Get ingress IP `kubectl --namespace default get services -o wide -w ingress-nginx-controller`
+24. Get logs `kubectl logs news-api-78c74cf964-bzsm8  -n=news-api -c news-api --tail=20 --follow`
+25. Describe a pod `kubectl describe pods news-api-78c74cf964-bzsm8 -n=news-api`
+26. Get current context `kubectl config current-context`
+27. Checkout context `kubectl config use-context myc-new-env`
+28. Get nodes `kubectl get nodes -o wide`
 
 RUNNING ON AWS:
 --------------
 
-1. Choose an appropriate profile `aws --profile esase`
-2. Set a default profile `export AWS_PROFILE=esase`
-3. Create a cluster using the `eksctl` tool
+1. Set a default profile `export AWS_PROFILE=esase`
+2. Create a cluster using the `eksctl` tool
 ```
 eksctl create cluster \
 --name test-cluster \
 --region eu-central-1 \
 --nodegroup-name linux-nodes \
 --node-type t2.micro
---nodes 2
+--nodes 3
 ```
 
 4. Change the number of nodes in the cluster  `eksctl scale nodegroup --region eu-central-1 --cluster=test-cluster --nodes=5 --name=linux-nodes --nodes-min=2 --nodes-max=10`
 
 5. Deleting cluster `eksctl delete cluster --region eu-central-1 --name prod-cluster`
 
-6. Installing ingress using the `helm` https://faun.pub/eks-with-nginx-ingress-controller-and-helm3-daee18175d45
+
+HELM
+----
+
+1. Installing ingress  https://kubernetes.github.io/ingress-nginx/deploy/
+
 
 LINKS
 -----
@@ -90,9 +93,10 @@ LINKS
 7. https://eksctl.io/usage/creating-and-managing-clusters/
 8. https://github.com/weaveworks/eksctl/tree/main/examples
 9. https://aws.amazon.com/premiumsupport/knowledge-center/eks-worker-node-actions/
+10. https://www.youtube.com/watch?v=9EVs5LcaUcs
 
-NOTES:
-------
+SPECIFICATION:
+-------------
 
 0. `Minicube` is a tool for running a kubernetes cluster one a one machine for development purposes which use a virtual box for running pods.
 
