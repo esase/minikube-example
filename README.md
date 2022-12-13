@@ -50,8 +50,8 @@ ADVANCED KUBER COMMANDS:
 21. Show all secrets `kubectl get secrets`
 22. Describe the secret `kubectl describe secret mysecret`
 23. Get a secret `kubectl get secret docker-registry -o json`
-24. Get logs `kubectl logs news-api-78c74cf964-bzsm8  -n=news-api -c news-api --tail=20 --follow`
-25. Describe a pod `kubectl describe pods news-api-78c74cf964-bzsm8 -n=news-api`
+24. Get logs `kubectl logs news-api-7496877d7c-62qmq  -n=news-api -c news-api --tail=20 --follow`
+25. Describe a pod `kubectl describe pods news-api-79b9594c46-8dbjf -n=news-api`
 26. Get current context `kubectl config current-context`
 27. Checkout context `kubectl config use-context myc-new-env`
 28. Get nodes `kubectl get nodes -o wide`
@@ -74,6 +74,13 @@ eksctl create cluster \
 
 5. Deleting cluster `eksctl delete cluster --region eu-central-1 --name prod-cluster`
 
+DOCKER
+-----
+
+1. RUn `docker run -p 8080:8080 --rm -it esase/news-api:1.4`
+
+2. build and publish `docker build -f ./infra/docker/Dockerfile -t esase/news-api:1.7 .`
+  `docker push esase/news-api:1.7`
 
 HELM
 ----
@@ -94,6 +101,7 @@ LINKS
 8. https://github.com/weaveworks/eksctl/tree/main/examples
 9. https://aws.amazon.com/premiumsupport/knowledge-center/eks-worker-node-actions/
 10. https://www.youtube.com/watch?v=9EVs5LcaUcs
+11. https://stackoverflow.com/questions/73398714/docker-fails-when-building-on-m1-macs-exec-usr-local-bin-docker-entrypoint-sh
 
 SPECIFICATION:
 -------------
@@ -244,14 +252,7 @@ data:
 
 ```
 
-13. To be able to use private repos in the kuber we should build images and push them into a registry
-
-```
-docker build -f ./infra/docker/Dockerfile -t esase/news-api:1.0 .
-docker push esase/news-api:1.1
-```
-
-14. Then we need to create a secret to be able to fetch images from the private repos
+13. Then we need to create a secret to be able to fetch images from the private repos
 
 ```
 kubectl create secret --namespace=news-api docker-registry news-api-docker-registry \
