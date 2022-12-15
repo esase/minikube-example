@@ -90,7 +90,13 @@ gcloud container clusters create test-cluster \
   --enable-ip-alias \
   --num-nodes=1
 ```
-3. Installing ingress https://cloud.google.com/community/tutorials/nginx-ingress-gke
+
+3. Delete a cluster
+```
+gcloud container clusters delete test-cluster --zone=europe-west2
+```
+
+4. Installing ingress https://cloud.google.com/community/tutorials/nginx-ingress-gke
 
 DOCKER
 -----
