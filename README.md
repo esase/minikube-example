@@ -55,6 +55,8 @@ ADVANCED KUBER COMMANDS:
 26. Get current context `kubectl config current-context`
 27. Checkout context `kubectl config use-context myc-new-env`
 28. Get nodes `kubectl get nodes -o wide`
+29. Export components by a namespace `kubectl get namespace,deployment,secret,service,ingress -n news-api -o yaml > news-api.yaml`
+
 
 RUNNING ON AWS:
 --------------
@@ -72,7 +74,23 @@ eksctl create cluster \
 
 4. Change the number of nodes in the cluster  `eksctl scale nodegroup --region eu-central-1 --cluster=test-cluster --nodes=5 --name=linux-nodes --nodes-min=2 --nodes-max=10`
 
-5. Deleting cluster `eksctl delete cluster --region eu-central-1 --name prod-cluster`
+5. Deleting cluster `eksctl delete cluster --region eu-central-1 --name test-cluster`
+
+6. Installing ingress https://kubernetes.github.io/ingress-nginx/deploy/
+
+
+RUNNING ON GOOGLE GLOUD
+-----------------------
+
+1. Download and configure skd - https://cloud.google.com/sdk/docs/install
+2. Create a new custer 
+```
+gcloud container clusters create test-cluster \
+  --zone=europe-west2 \
+  --enable-ip-alias \
+  --num-nodes=1
+```
+3. Installing ingress https://cloud.google.com/community/tutorials/nginx-ingress-gke
 
 DOCKER
 -----
@@ -101,7 +119,11 @@ LINKS
 8. https://github.com/weaveworks/eksctl/tree/main/examples
 9. https://aws.amazon.com/premiumsupport/knowledge-center/eks-worker-node-actions/
 10. https://www.youtube.com/watch?v=9EVs5LcaUcs
-11. https://stackoverflow.com/questions/73398714/docker-fails-when-building-on-m1-macs-exec-usr-local-bin-docker-entrypoint-sh
+11. https://stackoverflow.com/questions/73398714/
+12. docker-fails-when-building-on-m1-macs-exec-usr-local-bin-docker-entrypoint-sh
+13. https://medium.com/google-cloud/migrating-applications-between-kubernetes-clusters-8455cf1bfccd
+14. https://jhooq.com/get-yaml-for-deployed-kubernetes-resources/
+15. https://medium.com/nontechcompany/cool-kubernetes-command-line-plugins-4b0e50362426
 
 SPECIFICATION:
 -------------
@@ -278,3 +300,8 @@ spec:
         - name: docker-registry <-----
 ```
 
+14. `StatefullSet` pods deployments have some differences, like:
+every pod has a constant id if the pod is dying the new restored pod will have the same id. 
+Data should be stored outside the docker container, to not lose data when the cluster or pods
+are destroyed. The good example is to run `mysql` cluster like master slaves in the kuber.
+Kuber does not provide any mechanism to sync data between pods, etc. We should implement it our selves. because kuber is not perfect for statefull apps (because of that side effects)
