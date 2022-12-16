@@ -78,7 +78,19 @@ eksctl create cluster \
 
 6. Installing ingress https://kubernetes.github.io/ingress-nginx/deploy/
 
-
+7. Pushing docker images
+  a.To be logged in ECR `aws ecr get-login-password --region eu-central-1 | docker login --username AWS --password-stdin 663781650777.dkr.ecr.eu-central-1.amazonaws.com`
+  b. Describe repositories `aws ecr describe-repositories --region eu-central-1`
+  c. Tag the image to push to your repository. `docker tag news-api:1.1 663781650777.dkr.ecr.eu-central-1.amazonaws.com/news-api:1.1`
+  d. Get list of images `aws ecr describe-images --region eu-central-1 --repository-name news-api`
+  e. Push an image `docker push 663781650777.dkr.ecr.eu-central-1.amazonaws.com/news-api:1.1`
+  f. Pul an image `docker pull 663781650777.dkr.ecr.eu-central-1.amazonaws.com/news-api:1.0`
+  g. Create a repo 
+  `aws ecr create-repository \
+    --repository-name hello-repository \
+    --image-scanning-configuration scanOnPush=true \
+    --region region`
+  h. Create a repo if it's missing `aws ecr describe-repositories --repository-names news-api  --region eu-central-1 || aws ecr create-repository --repository-name news-api  --region eu-central-1`
 RUNNING ON GOOGLE GLOUD
 -----------------------
 
@@ -101,10 +113,10 @@ gcloud container clusters delete test-cluster --zone=europe-west2
 DOCKER
 -----
 
-1. RUn `docker run -p 8080:8080 --rm -it esase/news-api:1.4`
+1. Run `docker run -p 8080:8080 --rm -it esase/news-api:1.0`
 
-2. build and publish `docker build -f ./infra/docker/Dockerfile -t esase/news-api:1.7 .`
-  `docker push esase/news-api:1.7`
+2. build and publish `docker build -f ./infra/docker/Dockerfile -t news-api:1.0 .`
+  `docker push news-api:1.0`
 
 HELM
 ----
@@ -130,6 +142,11 @@ LINKS
 13. https://medium.com/google-cloud/migrating-applications-between-kubernetes-clusters-8455cf1bfccd
 14. https://jhooq.com/get-yaml-for-deployed-kubernetes-resources/
 15. https://medium.com/nontechcompany/cool-kubernetes-command-line-plugins-4b0e50362426
+16. https://docs.aws.amazon.com/AmazonECR/latest/userguide/docker-pull-ecr-image.html
+17. https://medium.com/geekculture/how-to-locally-pull-docker-image-from-aws-ecr-ebebbb4c100
+18. https://docs.aws.amazon.com/AmazonECR/latest/userguide/getting-started-cli.html
+19. https://www.basefactor.com/hello-docker-travis-ci-cd
+20. https://stackoverflow.com/questions/37267916/how-to-run-aws-configure-in-a-travis-deploy-script
 
 SPECIFICATION:
 -------------
