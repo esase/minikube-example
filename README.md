@@ -56,7 +56,27 @@ ADVANCED KUBER COMMANDS:
 27. Checkout context `kubectl config use-context myc-new-env`
 28. Get nodes `kubectl get nodes -o wide`
 29. Export components by a namespace `kubectl get namespace,deployment,secret,service,ingress -n news-api -o yaml > news-api.yaml`
+30. List of installed helm packages `helm list -A`
+31. Port forwarding `kubectl port-forward "pod-name" 8080`
 
+MONITORING CLUSTER:
+------------------
+
+For monitoring cluster the best choice now days is the `Prometheus`. The tool gives a rich set of functionalities,
+like you can monitor CPU and memory consumptions by your microservices. Additionally we can setup
+alert rules, and get notifications by email, slack, etc when something wrong. The monitoring data could be 
+visualized by the Grafana tool.
+
+1. Installing 
+  `helm repo add prometheus-community https://prometheus-community.github.io/helm-charts`
+  `helm repo update`
+  `helm install prometheus prometheus-community/kube-prometheus-stack --namespace monitoring --create-namespace`
+
+2. Accessing to the Grafana's UI `kubectl port-forward "prometheus-grafana-5bddbc65b8-9htzq" 3000` 
+  user: `admin`
+  pass: `prom-operator`
+
+3. Uninstalling: `helm uninstall prometheus -n monitoring`
 
 RUNNING ON AWS:
 --------------
@@ -72,11 +92,17 @@ eksctl create cluster \
 --nodes 3
 ```
 
-4. Change the number of nodes in the cluster  `eksctl scale nodegroup --region eu-central-1 --cluster=test-cluster --nodes=5 --name=linux-nodes --nodes-min=2 --nodes-max=10`
+4. Change the number of nodes in the cluster  `eksctl scale nodegroup --region eu-central-1 --cluster=test-cluster --nodes=20 --name=linux-nodes --nodes-min=2 --nodes-max=20`
 
 5. Deleting cluster `eksctl delete cluster --region eu-central-1 --name test-cluster`
 
-6. Installing ingress https://kubernetes.github.io/ingress-nginx/deploy/
+6. Installing ingress 
+
+```
+helm upgrade --install ingress-nginx ingress-nginx \
+  --repo https://kubernetes.github.io/ingress-nginx \
+  --namespace ingress-nginx --create-namespace
+```
 
 7. Pushing docker images
   a.To be logged in ECR `aws ecr get-login-password --region eu-central-1 | docker login --username AWS --password-stdin 663781650777.dkr.ecr.eu-central-1.amazonaws.com`
@@ -147,6 +173,7 @@ LINKS
 18. https://docs.aws.amazon.com/AmazonECR/latest/userguide/getting-started-cli.html
 19. https://www.basefactor.com/hello-docker-travis-ci-cd
 20. https://stackoverflow.com/questions/37267916/how-to-run-aws-configure-in-a-travis-deploy-script
+21. https://devapo.io/how-to-set-up-prometheus-on-kubernetes-with-helm-charts/
 
 SPECIFICATION:
 -------------
