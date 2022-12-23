@@ -70,13 +70,33 @@ visualized by the Grafana tool.
 1. Installing 
   `helm repo add prometheus-community https://prometheus-community.github.io/helm-charts`
   `helm repo update`
-  `helm install prometheus prometheus-community/kube-prometheus-stack --namespace monitoring --create-namespace`
+  `helm install prometheus prometheus-community/kube-prometheus-stack --namespace monitoring -f prom-custom-values.yaml --create-namespace`
 
-2. Accessing to the Grafana's UI `kubectl port-forward "prometheus-grafana-5bddbc65b8-9htzq" 3000` 
+2. Updating configs
+
+```
+  helm upgrade \
+    --namespace monitoring \
+    -f prom-custom-values.yaml \
+    prometheus prometheus-community/kube-prometheus-stack`
+```
+
+2. Accessing to the Grafana's UI `kubectl port-forward "prometheus-grafana-7bdd794646-657gc" 3000 -n monitoring` 
   user: `admin`
   pass: `prom-operator`
 
 3. Uninstalling: `helm uninstall prometheus -n monitoring`
+
+4. Accessing to the Prometheus's UI `kubectl port-forward services/prometheus-kube-prometheus-prometheus 9090:9090 -n monitoring`
+
+5. Removing the package `helm uninstall prometheus -n monitoring`
+
+6. Show configs `kubectl exec -it statefulset/$name -n $ns -c prometheus -- cat /etc/prometheus/config_out/prometheus.env.yaml`
+
+7. Most popular queries:
+  a. Number of containers by cluster and namespace without CPU limits `count by (namespace)(sum by (namespace,pod,container)(kube_pod_container_info{container!=""}) unless sum by (namespace,pod,container)(kube_pod_container_resource_limits{resource="cpu"}))`
+
+  b. Pod restarts by namespace `sum by (namespace)(changes(kube_pod_status_ready{condition="true"}[5m]))`
 
 RUNNING ON AWS:
 --------------
@@ -92,7 +112,7 @@ eksctl create cluster \
 --nodes 3
 ```
 
-4. Change the number of nodes in the cluster  `eksctl scale nodegroup --region eu-central-1 --cluster=test-cluster --nodes=20 --name=linux-nodes --nodes-min=2 --nodes-max=20`
+4. Change the number of nodes in the cluster  `eksctl scale nodegroup --region eu-central-1 --cluster=test-cluster --nodes=5 --name=linux-nodes --nodes-min=2 --nodes-max=20`
 
 5. Deleting cluster `eksctl delete cluster --region eu-central-1 --name test-cluster`
 
@@ -174,6 +194,8 @@ LINKS
 19. https://www.basefactor.com/hello-docker-travis-ci-cd
 20. https://stackoverflow.com/questions/37267916/how-to-run-aws-configure-in-a-travis-deploy-script
 21. https://devapo.io/how-to-set-up-prometheus-on-kubernetes-with-helm-charts/
+22. https://grafana.com/grafana/dashboards/3063-memcached-pods-monitoring-via-prometheus/
+23. https://sysdig.com/blog/prometheus-query-examples/
 
 SPECIFICATION:
 -------------
@@ -355,3 +377,5 @@ every pod has a constant id if the pod is dying the new restored pod will have t
 Data should be stored outside the docker container, to not lose data when the cluster or pods
 are destroyed. The good example is to run `mysql` cluster like master slaves in the kuber.
 Kuber does not provide any mechanism to sync data between pods, etc. We should implement it our selves. because kuber is not perfect for statefull apps (because of that side effects)
+
+15. The `kubelet` is the primary "node agent" that runs on each node. It can register the node with the apiserver using one of: the hostname; a flag to override the hostname; or specific logic for a cloud provider.
