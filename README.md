@@ -59,6 +59,26 @@ ADVANCED KUBER COMMANDS:
 30. List of installed helm packages `helm list -A`
 31. Port forwarding `kubectl port-forward "pod-name" 8080`
 
+RABBITMQ
+-----------
+
+1. Installing (it's not working on MAC m1 processors :( ):
+
+`helm repo add rabbitmq-repo https://charts.bitnami.com/bitnami`
+`helm install rabbitmq rabbitmq-repo/rabbitmq --namespace rabbitmq-system --create-namespace`
+
+2. Get credentials:
+
+```
+Credentials:
+    echo "Username      : admin"
+    echo "Password      : $(kubectl get secret --namespace rabbitmq-system rabbitmq -o jsonpath="{.data.rabbitmq-password}" | base64 -d)"
+    echo "ErLang Cookie : $(kubectl get secret --namespace rabbitmq-system rabbitmq -o jsonpath="{.data.rabbitmq-erlang-cookie}" | base64 -d)"
+```
+
+3. Accessing the UI `port-forward --namespace rabbitmq-system svc/rabbitmq 5672:5672`
+
+
 MONITORING CLUSTER:
 ------------------
 
@@ -70,7 +90,7 @@ visualized by the Grafana tool.
 1. Installing 
   `helm repo add prometheus-community https://prometheus-community.github.io/helm-charts`
   `helm repo update`
-  `helm install prometheus prometheus-community/kube-prometheus-stack --namespace monitoring -f prom-custom-values.yaml --create-namespace`
+  `helm install prometheus prometheus-community/kube-prometheus-stack --namespace monitoring-system -f alertmanager.yml -f pod-auto-detect.yaml --create-namespace`
 
 2. Updating configs
 
@@ -78,10 +98,10 @@ visualized by the Grafana tool.
   helm upgrade \
     --namespace monitoring \
     -f prom-custom-values.yaml \
-    prometheus prometheus-community/kube-prometheus-stack`
+    prometheus prometheus-community/kube-prometheus-stack
 ```
 
-2. Accessing to the Grafana's UI `kubectl port-forward "prometheus-grafana-7bdd794646-657gc" 3000 -n monitoring` 
+2. Accessing to the Grafana's UI `kubectl port-forward "prometheus-grafana-7bdd794646-7zscz" 3000 -n monitoring` 
   user: `admin`
   pass: `prom-operator`
 
@@ -97,6 +117,17 @@ visualized by the Grafana tool.
   a. Number of containers by cluster and namespace without CPU limits `count by (namespace)(sum by (namespace,pod,container)(kube_pod_container_info{container!=""}) unless sum by (namespace,pod,container)(kube_pod_container_resource_limits{resource="cpu"}))`
 
   b. Pod restarts by namespace `sum by (namespace)(changes(kube_pod_status_ready{condition="true"}[5m]))`
+  c. Memory consumption `container_memory_working_set_bytes{namespace=~".*-api"}`
+
+8. You can download a predefined list of dashboards from: https://grafana.com/grafana/dashboards/6417-kubernetes-cluster-prometheus/
+https://grafana.com/grafana/dashboards/7249-kubernetes-cluster/
+
+or you can build queries manually https://sysdig.es/blog/prometheus-query-examples/
+
+9. A list of a top alerts which could be run in a cluster - https://awesome-prometheus-alerts.grep.to/rules.html#kubernetes
+
+PS: prometheus has shipped with a lot of predefined alerts!!! we only need to select of them.
+
 
 RUNNING ON AWS:
 --------------
@@ -112,7 +143,17 @@ eksctl create cluster \
 --nodes 3
 ```
 
-4. Change the number of nodes in the cluster  `eksctl scale nodegroup --region eu-central-1 --cluster=test-cluster --nodes=5 --name=linux-nodes --nodes-min=2 --nodes-max=20`
+large on demand
+```
+eksctl create cluster \
+--name test-cluster \
+--region eu-central-1 \
+--nodegroup-name linux-nodes \
+--node-type a1.medium
+--nodes 2
+```
+
+4. Change the number of nodes in the cluster  `eksctl scale nodegroup --region eu-central-1 --cluster=test-cluster --nodes=5 --name=linux-nodes --nodes-min=2 --nodes-max=30`
 
 5. Deleting cluster `eksctl delete cluster --region eu-central-1 --name test-cluster`
 
@@ -121,7 +162,7 @@ eksctl create cluster \
 ```
 helm upgrade --install ingress-nginx ingress-nginx \
   --repo https://kubernetes.github.io/ingress-nginx \
-  --namespace ingress-nginx --create-namespace
+  --namespace ingress-nginx-system --create-namespace
 ```
 
 7. Pushing docker images
@@ -137,6 +178,7 @@ helm upgrade --install ingress-nginx ingress-nginx \
     --image-scanning-configuration scanOnPush=true \
     --region region`
   h. Create a repo if it's missing `aws ecr describe-repositories --repository-names news-api  --region eu-central-1 || aws ecr create-repository --repository-name news-api  --region eu-central-1`
+
 RUNNING ON GOOGLE GLOUD
 -----------------------
 
@@ -161,8 +203,8 @@ DOCKER
 
 1. Run `docker run -p 8080:8080 --rm -it esase/news-api:1.0`
 
-2. build and publish `docker build -f ./infra/docker/Dockerfile -t news-api:1.0 .`
-  `docker push news-api:1.0`
+2. build and publish `docker build -f ./infra/docker/Dockerfile -t esase/news-api:1.11 .`
+  `docker push esase/news-api:1.11`
 
 HELM
 ----
@@ -196,6 +238,9 @@ LINKS
 21. https://devapo.io/how-to-set-up-prometheus-on-kubernetes-with-helm-charts/
 22. https://grafana.com/grafana/dashboards/3063-memcached-pods-monitoring-via-prometheus/
 23. https://sysdig.com/blog/prometheus-query-examples/
+24. https://inostudio.com/blog/articles-devops/nastroyka-kube-prometheus-stack/
+25. https://www.rabbitmq.com/kubernetes/operator/install-operator.html
+26. https://devtron.ai/blog/creating-production-grade-kubernetes-eks-cluster-eksctl/
 
 SPECIFICATION:
 -------------
